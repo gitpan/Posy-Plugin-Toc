@@ -3,15 +3,15 @@ use strict;
 
 =head1 NAME
 
-Posy::Plugin::Toc - Posy plugin create a table of contents
+Posy::Plugin::Toc - Posy plugin create a table of contents.
 
 =head1 VERSION
 
-This describes version B<0.40> of Posy::Plugin::Toc.
+This describes version B<0.50> of Posy::Plugin::Toc.
 
 =cut
 
-our $VERSION = '0.40';
+our $VERSION = '0.50';
 
 =head1 SYNOPSIS
 
@@ -29,8 +29,8 @@ our $VERSION = '0.40';
 Creates a table of contents generated from headings.
 
 The table of contents will be generated only if the entry
-contains string $toc_split and only from headers below
-$toc_split. 
+contains the 'toc_split' or the 'toc_split_after' values,
+and only from headers below the match.
 
 If there are no headers (element $toc_chapter_element), then 
 no table of contents will be generated.
@@ -44,7 +44,7 @@ are using the Posy::Plugin::ShortBody plugin, this should be placed after
 
 This expects configuration settings in the $self->{config} hash,
 which, in the default Posy setup, can be defined in the main "config"
-file in the data directory.
+file in the config directory.
 
 =over
 
@@ -52,6 +52,14 @@ file in the data directory.
 
 String which will be replaced by the table of contents.
 (default: <!-- toc -->)
+
+=item B<toc_split_after>
+
+If this is defined, then the table of contents will be placed
+after the first match of this string.  This is useful for
+putting a ToC after the first <h1> header in a file, for example.
+This overrides toc_split if it is defined.
+(default: nothing)
 
 =item B<toc_chapter_element>
 
@@ -106,6 +114,8 @@ sub init {
     # set defaults
     $self->{config}->{toc_split} = qr/<!--\s*toc\s*-->/
 	if (!defined $self->{config}->{toc_split});
+    $self->{config}->{toc_split_after} = ''
+	if (!defined $self->{config}->{toc_split_after});
     $self->{config}->{toc_chapter_element} = 'h3'
 	if (!defined $self->{config}->{toc_chapter_element});
     $self->{config}->{toc_chapter_prefix} = q:" ":
@@ -135,7 +145,7 @@ Methods implementing per-entry actions.
 $self->make_toc($flow_state, $current_entry, $entry_state)
 
 Alters $current_entry->{body} by adding a table-of-contents
-if the "toc_split" string is in the body.
+if the "toc_split" or the "toc_split_after" string is in the body.
 
 =cut
 sub make_toc {
@@ -146,7 +156,17 @@ sub make_toc {
 
     my $body = $current_entry->{body};
     my $text;
-    ($body, $text) = split $self->{config}->{toc_split}, $body, 2;
+    if ($self->{config}->{toc_split_after})
+    {
+	my $split_after = $self->{config}->{toc_split_after};
+	$body =~ /$split_after/;
+	$text = $';
+	$body = join('', $`, $&);
+    }
+    else
+    {
+	($body, $text) = split $self->{config}->{toc_split}, $body, 2;
+    }
   
     if ($text)
     {

@@ -1,6 +1,17 @@
 Revision history for Posy-Plugin-Toc
 ====================================
 
+0.50 Wed 26 January 2005
+------------------------
+
+  * (26 Jan 2005) removed Makefile.PL
+
+  * (26 Jan 2005) toc_split_after option
+  	Now one can use the toc_split_after option to put a ToC
+  after, say, the first header in an entry (with a regex like
+  '<h1>[^>]+</h1>') without having to have a special ToC tag.
+  This is useful for entries which have been converted from text.
+
 0.40 Sat 15 January 2005
 ------------------------
 

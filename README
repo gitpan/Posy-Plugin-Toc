@@ -1,20 +1,21 @@
 
 ==== NAME ====
 
-Posy::Plugin::Toc - Posy plugin create a table of contents
+Posy::Plugin::Toc - Posy plugin create a table of contents.
 
 
 ==== VERSION ====
 
-This describes version ``0.40'' of Posy::Plugin::Toc.
+This describes version ``0.50'' of Posy::Plugin::Toc.
 
 
 ==== DESCRIPTION ====
 
 Creates a table of contents generated from headings.
 
-The table of contents will be generated only if the entry contains string
-$toc_split and only from headers below $toc_split.
+The table of contents will be generated only if the entry contains the
+'toc_split' or the 'toc_split_after' values, and only from headers below the
+match.
 
 If there are no headers (element $toc_chapter_element), then no table of
 contents will be generated.
@@ -28,12 +29,18 @@ using the Posy::Plugin::ShortBody plugin, this should be placed after
 ==   Configuration   ==
 
 This expects configuration settings in the $self->{config} hash, which, in
-the default Posy setup, can be defined in the main "config" file in the data
-directory.
+the default Posy setup, can be defined in the main "config" file in the
+config directory.
 
 ``toc_split''
 String which will be replaced by the table of contents. (default: <!-- toc
 -->)
+
+``toc_split_after''
+If this is defined, then the table of contents will be placed after the
+first match of this string. This is useful for putting a ToC after the first
+<h1> header in a file, for example. This overrides toc_split if it is
+defined. (default: nothing)
 
 ``toc_chapter_element''
 Which element marks the header of the "chapters"? (default: h3)
