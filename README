@@ -1,0 +1,87 @@
+
+==== NAME ====
+
+Posy::Plugin::Toc - Posy plugin create a table of contents
+
+
+==== VERSION ====
+
+This describes version ``0.40'' of Posy::Plugin::Toc.
+
+
+==== DESCRIPTION ====
+
+Creates a table of contents generated from headings.
+
+The table of contents will be generated only if the entry contains string
+$toc_split and only from headers below $toc_split.
+
+If there are no headers (element $toc_chapter_element), then no table of
+contents will be generated.
+
+This creates a 'make_toc' entry action, which should be placed after
+'parse_entry' and before 'render_entry' in the entry_action list. If you are
+using the Posy::Plugin::ShortBody plugin, this should be placed after
+'short_body' in the entry_action list, not before it.
+
+
+==   Configuration   ==
+
+This expects configuration settings in the $self->{config} hash, which, in
+the default Posy setup, can be defined in the main "config" file in the data
+directory.
+
+``toc_split''
+String which will be replaced by the table of contents. (default: <!-- toc
+-->)
+
+``toc_chapter_element''
+Which element marks the header of the "chapters"? (default: h3)
+
+``toc_chapter_prefix''
+This will prefix the chapters' headers.
+
+``toc_anchor''
+Contents of the anchor of chapters prefix.
+
+``toc_prefix''
+Prefix of the table of contents. (default: <h3>Table of Contents</h3><ul
+class="PageTOC">)
+
+``toc_line_prefix''
+Prefix of the line for each chapter will be inserted into the TOC (default:
+<li>)
+
+``toc_line_suffix''
+Suffix of the line for each chapter will be inserted into the TOC (default:
+</li>)
+
+``toc_suffix''
+Suffix of the table of contents. (default: </ul>)
+
+
+==== REQUIRES ====
+
+    Posy
+    Posy::Core
+
+    Test::More
+
+
+==== AUTHOR ====
+
+    Kathryn Andersen (RUBYKAT)
+    perlkat AT katspace dot com
+    http://www.katspace.com
+
+
+==== COPYRIGHT AND LICENCE ====
+
+Copyright (c) 2004-2005 by Kathryn Andersen
+
+Based on the blosxom 'toc' plugin by Gregor Rayman (copyright 2003) <rayman
+<at> grayman <dot> de>
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
