@@ -1,6 +1,13 @@
 Revision history for Posy-Plugin-Toc
 ====================================
 
+0.52 Thu 12 May 2005
+--------------------
+
+  * (12 May 2005) update Posy version
+
+  * (12 May 2005) add Makefile.PL
+
 0.5101 Sat 26 March 2005
 ------------------------
 

@@ -1,16 +1,16 @@
 --- #YAML:1.0
 name: Posy-Plugin-Toc
-version: 0.5101
+version: 0.52
 author:
   - Kathryn Andersen
 abstract: Posy plugin create a table of contents.
 license: perl
 requires:
-  Posy: 0.9
+  Posy: 0.95
 build_requires:
   Test::More: 0
 provides:
   Posy::Plugin::Toc:
     file: lib/Posy/Plugin/Toc.pm
-    version: 0.5101
-generated_by: Module::Build version 0.2608
+    version: 0.52
+generated_by: Module::Build version 0.261

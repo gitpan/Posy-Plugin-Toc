@@ -7,11 +7,11 @@ Posy::Plugin::Toc - Posy plugin create a table of contents.
 
 =head1 VERSION
 
-This describes version B<0.5101> of Posy::Plugin::Toc.
+This describes version B<0.52> of Posy::Plugin::Toc.
 
 =cut
 
-our $VERSION = '0.5101';
+our $VERSION = '0.52';
 
 =head1 SYNOPSIS
 
