@@ -7,15 +7,21 @@ Posy::Plugin::Toc - Posy plugin create a table of contents.
 
 =head1 VERSION
 
-This describes version B<0.52> of Posy::Plugin::Toc.
+This describes version B<0.54> of Posy::Plugin::Toc.
 
 =cut
 
-our $VERSION = '0.52';
+our $VERSION = '0.54';
 
 =head1 SYNOPSIS
 
     @plugins = qw(Posy::Core Posy::Plugin::Toc));
+    @actions = qw(header
+	    ...
+	    make_page_toc
+	    render_page
+	    ...
+	);
     @entry_actions = qw(header
 	    ...
 	    parse_entry
@@ -35,10 +41,16 @@ and only from headers below the match.
 If there are no headers (element $toc_chapter_element), then 
 no table of contents will be generated.
 
-This creates a 'make_toc' entry action, which should be placed after
-'parse_entry' and before 'render_entry' in the entry_action list.  If you
-are using the Posy::Plugin::ShortBody plugin, this should be placed after
-'short_body' in the entry_action list, not before it.
+This creates a 'make_toc' entry-action, which will put a table of contents
+in the entry.  This should be placed after 'parse_entry' and before
+'render_entry' in the entry_action list. If you are using the
+Posy::Plugin::ShortBody plugin, this should be placed after 'short_body' in
+the entry_action list, not before it.
+
+This also creates a 'make_page_toc' action, which will put a table of
+contents in the whole page body.  This should be placed before
+'render_page' (so that one can be sure that one has the whole page to
+process).
 
 =head2 Configuration
 
@@ -46,7 +58,15 @@ This expects configuration settings in the $self->{config} hash,
 which, in the default Posy setup, can be defined in the main "config"
 file in the config directory.
 
+Note that one can use different settings for different page types, to
+fine-tune whether or not a Table-of-Contents will be generated.
+
 =over
+
+=item B<toc_in_entry>
+
+Turn this off to disable TOC generation in the entry.
+(default: on)
 
 =item B<toc_split>
 
@@ -59,7 +79,16 @@ If this is defined, then the table of contents will be placed
 after the first match of this string.  This is useful for
 putting a ToC after the first <h1> header in a file, for example.
 This overrides toc_split if it is defined.
+Note that if this is true, there will I<always> be a table of
+contents -- but remember that config files are very flexible.
 (default: nothing)
+
+=item B<toc_at_start>
+
+If this is true, then the table of contents will be placed
+at the very start of the entry-body or page-body.
+This overrides both toc_split and toc_split_after.
+(default: off)
 
 =item B<toc_chapter_element>
 
@@ -94,6 +123,11 @@ Suffix of the line for each chapter will be inserted into the TOC
 Suffix of the table of contents.
 (default: </ul>)
 
+=item B<toc_numbered>
+
+Turn this off to disable numbers in the table of contents.
+(default: on)
+
 =back
 
 =cut
@@ -112,6 +146,12 @@ sub init {
     $self->SUPER::init();
 
     # set defaults
+    $self->{config}->{toc_in_entry} = 1
+	if (!defined $self->{config}->{toc_in_entry});
+    $self->{config}->{toc_numbered} = 1
+	if (!defined $self->{config}->{toc_numbered});
+    $self->{config}->{toc_at_start} = 0
+	if (!defined $self->{config}->{toc_at_start});
     $self->{config}->{toc_split} = qr/<!--\s*toc\s*-->/
 	if (!defined $self->{config}->{toc_split});
     $self->{config}->{toc_split_after} = ''
@@ -133,31 +173,38 @@ sub init {
 	if (!defined $self->{config}->{toc_suffix});
 
     # initialize private things
-    $self->{toc}->{entry_num} = 0;
+    $self->{toc}->{entry_num} = 1;
 } # init
 
-=head1 Entry Action Methods
+=head1 Flow Action Methods
 
-Methods implementing per-entry actions.
+Methods implementing actions.
 
-=head2 make_toc
+=head2 make_page_toc
 
-$self->make_toc($flow_state, $current_entry, $entry_state)
+$self->make_toc($flow_state)
 
-Alters $current_entry->{body} by adding a table-of-contents
-if the "toc_split" or the "toc_split_after" string is in the body.
+This alters $flow_state->{page_body} by adding a table-of-contents if
+the "toc_split" or the "toc_split_after" string is in the body, or if
+"toc_at_start" is true.
 
 =cut
-sub make_toc {
+sub make_page_toc {
     my $self = shift;
     my $flow_state = shift;
-    my $current_entry = shift;
-    my $entry_state = shift;
+    my $current_entry = (@_ ? shift: undef);
+    my $entry_state = (@_ ? shift : undef);
 
-    my $body = $current_entry->{body};
+    my $body = '';
     my $text;
-    if ($self->{config}->{toc_split_after})
+    $self->{toc}->{entry_num} = 0; # use zero for the whole page
+    if ($self->{config}->{toc_at_start})
     {
+	$text = join('', @{$flow_state->{page_body}});
+    }
+    elsif ($self->{config}->{toc_split_after})
+    {
+	$body = join('', @{$flow_state->{page_body}});
 	my $split_after = $self->{config}->{toc_split_after};
 	$body =~ /$split_after/;
 	$text = $';
@@ -165,9 +212,10 @@ sub make_toc {
     }
     else
     {
+	$body = join('', @{$flow_state->{page_body}});
 	($body, $text) = split $self->{config}->{toc_split}, $body, 2;
     }
-  
+
     if ($text)
     {
 	my $toc = "";
@@ -180,9 +228,77 @@ sub make_toc {
 	if ($toc) {
 	    my $entry_num = $self->{toc}->{entry_num};
 	    $body .= "<a name='TOC${entry_num}'></a>"
-	    . $self->{config}->{toc_prefix}
+		. $self->{config}->{toc_prefix}
 	    . $toc
-	    . $self->{config}->{toc_suffix}
+		. $self->{config}->{toc_suffix}
+	    . $text;
+	} else {
+	    $body .= $text;
+	}
+	$flow_state->{page_body} = [$body];
+    }
+
+    1;
+} # make_page_toc
+
+=head1 Entry Action Methods
+
+Methods implementing per-entry actions.
+
+=head2 make_toc
+
+$self->make_toc($flow_state, $current_entry, $entry_state)
+
+This it alters $current_entry->{body} by adding a table-of-contents if
+the "toc_split" or the "toc_split_after" string is in the body, or if
+"toc_at_start" is true.  If "toc_in_entry" is false, however, this does
+nothing.
+
+=cut
+sub make_toc {
+    my $self = shift;
+    my $flow_state = shift;
+    my $current_entry = (@_ ? shift: undef);
+    my $entry_state = (@_ ? shift : undef);
+
+    if (!$self->{config}->{toc_in_entry})
+    {
+	return;
+    }
+    my $body = $current_entry->{body};
+    my $text;
+    if ($self->{config}->{toc_at_start})
+    {
+	$text = $body;
+	$body = '';
+    }
+    elsif ($self->{config}->{toc_split_after})
+    {
+	my $split_after = $self->{config}->{toc_split_after};
+	$body =~ /$split_after/;
+	$text = $';
+	$body = join('', $`, $&);
+    }
+    else
+    {
+	($body, $text) = split $self->{config}->{toc_split}, $body, 2;
+    }
+
+    if ($text)
+    {
+	my $toc = "";
+	my $toc_chapter_element = $self->{config}->{toc_chapter_element};
+	my $toc_prefix = $self->{config}->{toc_prefix};
+	my $toc_suffix = $self->{config}->{toc_suffix};
+	$self->{toc}->{chap} = 0;
+
+	$text =~ s:<($toc_chapter_element)(.*?)>(.*?)</$toc_chapter_element>:$self->_toc_do_stuff($1,$2,$3,\$toc):ego;
+	if ($toc) {
+	    my $entry_num = $self->{toc}->{entry_num};
+	    $body .= "<a name='TOC${entry_num}'></a>"
+		. $self->{config}->{toc_prefix}
+	    . $toc
+		. $self->{config}->{toc_suffix}
 	    . $text;
 	} else {
 	    $body .= $text;
@@ -217,19 +333,36 @@ sub _toc_do_stuff {
     my $newhead;
 
     $chap_id = join('', 'toc_', ${entry_num}, '_', ${chap});
-    $newhead = join('',
-		    '<', $chap_el, $chap_att, '><a name="', $chap_id,
-		    '" href="#TOC', $entry_num, '">',
-		    eval($self->{config}->{toc_anchor}),
-		    '</a>',
-		    eval($self->{config}->{toc_chapter_prefix}),
-		    $chap_label, '</', $chap_el, '>'
-		   );
 
-    $$toc_ref .= join('', $self->{config}->{toc_line_prefix},
-		      '<a href="#', $chap_id, '">',
-		      ${chap}, '. ', ${chap_label}, '</a>',
-		      $self->{config}->{toc_line_suffix});
+    if ($self->{config}->{toc_numbered})
+    {
+	$$toc_ref .= join('', $self->{config}->{toc_line_prefix},
+			  '<a href="#', $chap_id, '">',
+			  ${chap}, '. ', ${chap_label}, '</a>',
+			  $self->{config}->{toc_line_suffix});
+	$newhead = join('',
+			'<', $chap_el, $chap_att, '><a name="', $chap_id,
+			'" href="#TOC', $entry_num, '">',
+			eval($self->{config}->{toc_anchor}),
+			'</a>',
+			eval($self->{config}->{toc_chapter_prefix}),
+			$chap_label, '</', $chap_el, '>'
+		       );
+    }
+    else
+    {
+	$$toc_ref .= join('', $self->{config}->{toc_line_prefix},
+			  '<a href="#', $chap_id, '">',
+			  ${chap_label}, '</a>',
+			  $self->{config}->{toc_line_suffix});
+	$newhead = join('',
+			'<', $chap_el, $chap_att, '><a name="', $chap_id,
+			'" href="#TOC', $entry_num, '">',
+			$chap_label,
+			'</a>',
+			'</', $chap_el, '>'
+		       );
+    }
 
     return $newhead;
 } # _toc_do_stuff

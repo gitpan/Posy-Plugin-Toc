@@ -6,7 +6,7 @@ Posy::Plugin::Toc - Posy plugin create a table of contents.
 
 ==== VERSION ====
 
-This describes version ``0.52'' of Posy::Plugin::Toc.
+This describes version ``0.54'' of Posy::Plugin::Toc.
 
 
 ==== DESCRIPTION ====
@@ -20,10 +20,15 @@ match.
 If there are no headers (element $toc_chapter_element), then no table of
 contents will be generated.
 
-This creates a 'make_toc' entry action, which should be placed after
-'parse_entry' and before 'render_entry' in the entry_action list. If you are
-using the Posy::Plugin::ShortBody plugin, this should be placed after
-'short_body' in the entry_action list, not before it.
+This creates a 'make_toc' entry-action, which will put a table of contents
+in the entry. This should be placed after 'parse_entry' and before
+'render_entry' in the entry_action list. If you are using the
+Posy::Plugin::ShortBody plugin, this should be placed after 'short_body' in
+the entry_action list, not before it.
+
+This also creates a 'make_page_toc' action, which will put a table of
+contents in the whole page body. This should be placed before 'render_page'
+(so that one can be sure that one has the whole page to process).
 
 
 ==   Configuration   ==
@@ -31,6 +36,12 @@ using the Posy::Plugin::ShortBody plugin, this should be placed after
 This expects configuration settings in the $self->{config} hash, which, in
 the default Posy setup, can be defined in the main "config" file in the
 config directory.
+
+Note that one can use different settings for different page types, to
+fine-tune whether or not a Table-of-Contents will be generated.
+
+``toc_in_entry''
+Turn this off to disable TOC generation in the entry. (default: on)
 
 ``toc_split''
 String which will be replaced by the table of contents. (default: <!-- toc
@@ -40,7 +51,14 @@ String which will be replaced by the table of contents. (default: <!-- toc
 If this is defined, then the table of contents will be placed after the
 first match of this string. This is useful for putting a ToC after the first
 <h1> header in a file, for example. This overrides toc_split if it is
-defined. (default: nothing)
+defined. Note that if this is true, there will *always* be a table of
+contents -- but remember that config files are very flexible. (default:
+nothing)
+
+``toc_at_start''
+If this is true, then the table of contents will be placed at the very start
+of the entry-body or page-body. This overrides both toc_split and
+toc_split_after. (default: off)
 
 ``toc_chapter_element''
 Which element marks the header of the "chapters"? (default: h3)
@@ -65,6 +83,9 @@ Suffix of the line for each chapter will be inserted into the TOC (default:
 
 ``toc_suffix''
 Suffix of the table of contents. (default: </ul>)
+
+``toc_numbered''
+Turn this off to disable numbers in the table of contents. (default: on)
 
 
 ==== INSTALLATION ====

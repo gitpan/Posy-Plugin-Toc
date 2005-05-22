@@ -1,6 +1,24 @@
 Revision history for Posy-Plugin-Toc
 ====================================
 
+0.54 Sun 22 May 2005
+--------------------
+
+  * (22 May 2005) turn off numbering
+  	Added 'toc_numbered' config variable to enable the numbering
+  in the table of contents to be turned off.
+
+0.53 Sun 22 May 2005
+--------------------
+
+  * (22 May 2005) added make_page_toc
+  	Added "make_page_toc" action, and "toc_in_entry" config variable,
+  to enable generation of per-page table-of-contents as distinct from per-entry
+  table-of-contents.
+  	Also added "toc_at_start" config variable to force
+  the generation of a table-of-contents at the start of the (page)body,
+  which overrides toc_split and toc_split_after.
+
 0.52 Thu 12 May 2005
 --------------------
 
