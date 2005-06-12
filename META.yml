@@ -1,6 +1,6 @@
---- #YAML:1.0
+---
 name: Posy-Plugin-Toc
-version: 0.54
+version: 0.5501
 author:
   - Kathryn Andersen
 abstract: Posy plugin create a table of contents.
@@ -12,5 +12,5 @@ build_requires:
 provides:
   Posy::Plugin::Toc:
     file: lib/Posy/Plugin/Toc.pm
-    version: 0.54
+    version: 0.5501
 generated_by: Module::Build version 0.261

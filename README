@@ -6,16 +6,19 @@ Posy::Plugin::Toc - Posy plugin create a table of contents.
 
 ==== VERSION ====
 
-This describes version ``0.54'' of Posy::Plugin::Toc.
+This describes version ``0.5501'' of Posy::Plugin::Toc.
 
 
 ==== DESCRIPTION ====
 
 Creates a table of contents generated from headings.
 
-The table of contents will be generated only if the entry contains the
-'toc_split' or the 'toc_split_after' values, and only from headers below the
-match.
+The table of contents will be generated if the entry (or page) contains the
+toc_entry_split/toc_page_split or the
+toc_entry_split_after/toc_page_split_after values, only from headers below
+the match, OR, if the the toc_entry_at_start/toc_page_at_start value is
+true, in which case the table of contents will be generated from the whole
+entry (or page) and placed at the start.
 
 If there are no headers (element $toc_chapter_element), then no table of
 contents will be generated.
@@ -37,31 +40,56 @@ This expects configuration settings in the $self->{config} hash, which, in
 the default Posy setup, can be defined in the main "config" file in the
 config directory.
 
-Note that one can use different settings for different page types, to
-fine-tune whether or not a Table-of-Contents will be generated.
+Note that one can use different settings for different page types, and even
+for different entries, to fine-tune whether or not a Table-of-Contents will
+be generated.
 
-``toc_in_entry''
-Turn this off to disable TOC generation in the entry. (default: on)
+``toc_entry_split''
+String which will be replaced by the table of contents, in entries.
+(default: <!-- toc -->)
 
-``toc_split''
-String which will be replaced by the table of contents. (default: <!-- toc
--->)
+``toc_page_split''
+String which will be replaced by the table of contents, for the whole page.
+(default: <!-- page_toc -->)
 
-``toc_split_after''
+``toc_entry_split_after''
 If this is defined, then the table of contents will be placed after the
-first match of this string. This is useful for putting a ToC after the first
-<h1> header in a file, for example. This overrides toc_split if it is
-defined. Note that if this is true, there will *always* be a table of
-contents -- but remember that config files are very flexible. (default:
-nothing)
+first match of this string when processing entries. This is useful for
+putting a ToC after the first <h1> header in a file, for example. This
+overrides toc_entry_split if it is defined. Note that if this is true, there
+will *always* be a table of contents -- but remember that config files are
+very flexible. (default: nothing)
 
-``toc_at_start''
+``toc_page_split_after''
+If this is defined, then the table of contents will be placed after the
+first match of this string in the entire page. This is useful for putting a
+ToC after the first <h1> header in a file, for example. This overrides
+toc_page_split if it is defined.
+
+Note that if this is true, there will *always* be a table of contents -- but
+remember that config files are very flexible.
+
+Be very careful using this, as if one sets both toc_page_split_after and
+toc_entry_split_after to the same things, you will get two tables of
+contents, with wonky links.
+
+(default: nothing)
+
+``toc_entry_at_start''
 If this is true, then the table of contents will be placed at the very start
-of the entry-body or page-body. This overrides both toc_split and
-toc_split_after. (default: off)
+of the entry-body. This overrides both toc_entry_split and
+toc_entry_split_after. (default: off)
 
-``toc_chapter_element''
-Which element marks the header of the "chapters"? (default: h3)
+``toc_page_at_start''
+If this is true, then the table of contents will be placed at the very start
+of the page-body. This overrides both toc_page_split and
+toc_page_split_after. (default: off)
+
+``toc_entry_chapter_element''
+Which element marks the header of the "chapters" in entries? (default: h3)
+
+``toc_page_chapter_element''
+Which element marks the header of the "chapters" in pages? (default: h2)
 
 ``toc_chapter_prefix''
 This will prefix the chapters' headers.
